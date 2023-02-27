@@ -1,86 +1,92 @@
-// import useForm from './hooks/useForm';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import TextField from './components/TextField';
-import style from './css/globals.css';
+import { useForm } from 'react-hook-form';
+import { useState } from 'react';
+import { formSchema, FormSchema } from './schemas/formSchema';
+import { MultiStepForm } from './components/MultiStepForm';
+import FormStep from './components/FormStep';
 
 function App() {
-  const formSchema = z.object({
-    testField: z.string().min(4),
-    name: z.string().min(2).max(80),
-    email: z.string().email(),
-    phone: z
-      .string()
-      .regex(
-        /^((\(?0\d{4}\)?\s?\d{3}\s?\d{3})|(\(?0\d{3}\)?\s?\d{3}\s?\d{4})|(\(?0\d{2}\)?\s?\d{4}\s?\d{4}))(\s?#(\d{4}|\d{3}))?$/
-      ),
-  });
-
-  type FormSchema = z.infer<typeof formSchema>;
-
   const {
     register,
+    watch,
     handleSubmit,
     formState: { errors },
-  } = useForm<FormSchema>({
-    mode: 'onChange',
-    resolver: zodResolver(formSchema),
-  });
+  } = useForm<FormSchema>({ resolver: zodResolver(formSchema.partial()) });
 
-  const onSubmit = (data: FormSchema) => console.log(data);
+  const [step, setStep] = useState<number>(0);
+
+  const onSubmit = (data: unknown) => {
+    alert('submit');
+    console.log(data);
+    setStep((current) => current + 1);
+  };
 
   return (
     <div className="wrapper">
       <form onSubmit={handleSubmit(onSubmit)}>
-        <TextField
-          id="test-field"
-          label="Test Field"
-          type="text"
-          placeholder="hello"
-          fieldProps={{ ...register('testField') }}
-          error={errors.testField?.message as string}
-        />
         <div>
-          <label htmlFor="name">Name</label>
+          <label htmlFor="name-input">Name</label>
           <input
             type="text"
-            id="name"
-            aria-invalid={errors.name ? 'true' : 'false'}
             {...register('name')}
           />
           {errors.name && (
             <span role="alert">{errors.name?.message as string}</span>
           )}
         </div>
+        {step === 1 && (
+          <div>
+            <label htmlFor="email-input">Email</label>
+            <input
+              type="text"
+              {...register('email')}
+            />
+            {errors.email && (
+              <span role="alert">{errors.email?.message as string}</span>
+            )}
+          </div>
+        )}
         <div>
-          <label htmlFor="email">Email</label>
-          <input
-            type="text"
-            id="email"
-            aria-invalid={errors.email ? 'true' : 'false'}
-            {...register('email')}
-          />
-          {errors.email && (
-            <span role="alert">{errors.email?.message as string}</span>
-          )}
-        </div>
-        <div>
-          <label htmlFor="phone">Phone Number</label>
-          <input
-            type="tel"
-            id="phone"
-            aria-invalid={errors.phone ? 'true' : 'false'}
-            {...register('phone')}
-          />
-          {errors.phone && (
-            <span role="alert">{errors.phone?.message as string}</span>
-          )}
-        </div>
-        <div>
-          <button type="submit">Confirm</button>
+          <input type="submit" />
         </div>
       </form>
+      <pre>{JSON.stringify(watch(), null, 2)}</pre>
+      <MultiStepForm
+        onSubmit={(data) => console.log(data)}
+        schema={formSchema.partial()}
+      >
+        <FormStep
+          step={1}
+          currentStep={0}
+        >
+          <div>
+            <label htmlFor="name-input">Name</label>
+            <input
+              type="text"
+              {...register('name')}
+            />
+            {errors.name && (
+              <span role="alert">{errors.name?.message as string}</span>
+            )}
+          </div>
+        </FormStep>
+        <FormStep
+          step={2}
+          currentStep={0}
+        >
+          <div>
+            <label htmlFor="email-input">Email</label>
+            <input
+              type="text"
+              {...register('email')}
+            />
+            {errors.email && (
+              <span role="alert">{errors.email?.message as string}</span>
+            )}
+          </div>
+        </FormStep>
+        <input type="submit" />
+      </MultiStepForm>
     </div>
   );
 }

@@ -1,29 +1,48 @@
-import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ZodType } from 'zod';
-import { useState } from 'react';
+import { createContext, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { ZodTypeAny } from 'zod';
+
+import { FormContext } from './FormContext';
 
 interface MultiStepFormProps {
   children: React.ReactNode;
-  formSchema: ZodType<any>;
+  onSubmit: (data: unknown) => void;
+  schema: ZodTypeAny;
 }
 
-export default function MultiStepForm({
+export function MultiStepForm({
   children,
-  formSchema,
+  onSubmit,
+  schema,
 }: MultiStepFormProps) {
-  const [formStep, setFormStep] = useState<number>(0);
-  const methods = {
-    ...useForm({ resolver: zodResolver(formSchema) }),
-    formStep,
-    setFormStep,
+  const [formStep, setFormStep] = useState<number>(1);
+
+  const [data, setData] = useState({});
+
+  const {
+    handleSubmit,
+    watch,
+    register,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(schema),
+  });
+
+  const handleNext = (data: unknown) => {
+    setFormStep((prev) => prev + 1);
+    setData((prev) => ({ ...prev, data }));
+    logData();
   };
 
-  const onSubmit = (data: unknown) => console.log(data);
+  const logData = () => console.log('data: ', data);
 
   return (
-    <FormProvider {...methods}>
-      <form onSubmit={methods.handleSubmit(onSubmit)}>{children}</form>
-    </FormProvider>
+    <>
+      <FormContext.Provider value={{ register, watch, handleSubmit, formStep }}>
+        <form onSubmit={handleSubmit(handleNext)}>{children}</form>
+      </FormContext.Provider>
+      <pre>{JSON.stringify(watch(), null, 2)}</pre>
+    </>
   );
 }

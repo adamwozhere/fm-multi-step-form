@@ -35,6 +35,7 @@ export default function TextField({
     <div>
       <label htmlFor={id}>{label}</label>
       <input
+        id={id}
         type={type ?? 'text'}
         placeholder={placeholder}
         aria-invalid={error ? 'true' : 'false'}
