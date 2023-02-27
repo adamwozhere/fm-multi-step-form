@@ -2,7 +2,7 @@ import { useContext } from 'react';
 import { FormContext } from './FormContext';
 
 interface FormStepProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   step: number;
   currentStep?: number;
   label?: string;
@@ -19,15 +19,21 @@ export default function FormStep({
   const myContext = useContext(FormContext);
   console.log('context', myContext);
 
-  const show = () => {
-    return step === myContext.formStep;
+  console.log(step, currentStep, step === currentStep);
+  const showStep = () => {
+    return step === currentStep;
   };
 
-  return (
-    <section className={`form-step ${step}`}>
-      {label && <h3>{label}</h3>}
-      {description && <p>{description}</p>}
-      {children}
-    </section>
-  );
+  if (showStep()) {
+    return (
+      <section className={`form-step ${step}`}>
+        {currentStep}
+        {label && <h3>{label}</h3>}
+        {description && <p>{description}</p>}
+        {children}
+      </section>
+    );
+  } else {
+    return <></>;
+  }
 }

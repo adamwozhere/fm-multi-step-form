@@ -1,48 +1,36 @@
-import { zodResolver } from '@hookform/resolvers/zod';
-import { createContext, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { ZodTypeAny } from 'zod';
+import { Children } from 'react';
+import useMultiStepForm from '../hooks/useMultiStepForm';
+import { formSchema, FormSchema } from '../schemas/formSchema';
 
-import { FormContext } from './FormContext';
+import FormStep from './FormStep';
+import TextField from './TextField';
 
 interface MultiStepFormProps {
   children: React.ReactNode;
-  onSubmit: (data: unknown) => void;
-  schema: ZodTypeAny;
 }
 
-export function MultiStepForm({
-  children,
-  onSubmit,
-  schema,
-}: MultiStepFormProps) {
-  const [formStep, setFormStep] = useState<number>(1);
+export function MultiStepForm({ children }: MultiStepFormProps) {
+  const { register, handleSubmit, errors, currentStep, setCurrentStep } =
+    useMultiStepForm({
+      schema: formSchema,
+    });
 
-  const [data, setData] = useState({});
-
-  const {
-    handleSubmit,
-    watch,
-    register,
-    formState: { errors },
-  } = useForm({
-    resolver: zodResolver(schema),
-  });
-
-  const handleNext = (data: unknown) => {
-    setFormStep((prev) => prev + 1);
-    setData((prev) => ({ ...prev, data }));
-    logData();
+  const onSubmit = (data: unknown) => {
+    console.log('submitted!', data);
+    setCurrentStep((prev) => prev + 1);
   };
 
-  const logData = () => console.log('data: ', data);
+  const _children = Children.toArray(children) as React.ReactElement[];
+  const childSteps = _children.filter((child) => child.type === FormStep);
+  console.log(childSteps);
+  const totalChildren = childSteps.length;
+
+  console.log('total children', totalChildren);
 
   return (
-    <>
-      <FormContext.Provider value={{ register, watch, handleSubmit, formStep }}>
-        <form onSubmit={handleSubmit(handleNext)}>{children}</form>
-      </FormContext.Provider>
-      <pre>{JSON.stringify(watch(), null, 2)}</pre>
-    </>
+    <form>
+      <h1>hello</h1>
+      <div>{children}</div>
+    </form>
   );
 }
